@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CheckCircle, Download, Edit3, RefreshCw, Search, Trash2, Upload, X } from "lucide-react";
+import { CheckCircle, Download, Edit3, Plus, RefreshCw, Search, Trash2, Upload, X } from "lucide-react";
 import { apiUrl } from "../../config/api";
 import { getApiHeaders } from "../../utils/branchApi";
 import { cacheLabMasterTests, getImportedLabFileRows, saveImportedLabFileRows } from "../../utils/labMaster";
@@ -81,6 +81,7 @@ function LabFiles() {
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
+  const [addingRow, setAddingRow] = useState(false);
   const [form, setForm] = useState(getInitialForm());
   const [search, setSearch] = useState("");
 
@@ -166,17 +167,29 @@ function LabFiles() {
     }
   };
 
+  const openAdd = () => {
+    if (!canCreate) {
+      toast.error("You do not have permission to add lab files.");
+      return;
+    }
+    setEditingRow(null);
+    setAddingRow(true);
+    setForm(getInitialForm());
+  };
+
   const openEdit = (row) => {
     if (!canEdit) {
       toast.error("You do not have permission to edit lab files.");
       return;
     }
+    setAddingRow(false);
     setEditingRow(row);
     setForm(getInitialForm(row));
   };
 
-  const closeEdit = () => {
+  const closeForm = () => {
     setEditingRow(null);
+    setAddingRow(false);
     setForm(getInitialForm());
   };
 
@@ -184,6 +197,74 @@ function LabFiles() {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const buildLabMasterPayload = () => ({
+    testCode: form.testCode.trim(),
+    testName: form.testName.trim(),
+    category: form.category.trim(),
+    sampleType: form.sampleType.trim(),
+    unit: form.unit.trim(),
+    referenceRange: form.referenceRange.trim(),
+    price: Number(form.price) || 0,
+    turnaroundHours: Number(form.turnaroundHours) || 0,
+    instructions: form.instructions.trim(),
+    branchId: Number(form.branchId) || 0,
+    isActive: form.isActive === "true",
+  });
+
+  const sendLabMasterPayload = (url, method, payload) => {
+    const sendJson = () =>
+      fetch(url, {
+        method,
+        headers: {
+          ...getApiHeaders(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+    const sendFormData = () => {
+      const formData = new FormData();
+      Object.entries(payload).forEach(([key, value]) => {
+        formData.append(key, value === null || value === undefined ? "" : String(value));
+      });
+      return fetch(url, {
+        method,
+        headers: getApiHeaders(),
+        body: formData,
+      });
+    };
+
+    return sendJson().then((response) => (response.status === 415 ? sendFormData() : response));
+  };
+
+  const handleCreate = async (event) => {
+    event.preventDefault();
+    if (!canCreate) {
+      toast.error("You do not have permission to add lab files.");
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload = buildLabMasterPayload();
+      const response = await sendLabMasterPayload(apiUrl("Lab/master"), "POST", payload);
+      if (!response.ok) throw new Error(await getErrorMessage(response, "Unable to add lab test."));
+
+      toast.success("Lab test added successfully.");
+      const createdRow = await response.json().catch(() => null);
+      if (createdRow && typeof createdRow === "object") {
+        const nextRows = [createdRow, ...rows];
+        saveImportedLabFileRows(nextRows);
+        setRows(nextRows);
+      }
+      closeForm();
+      await loadRows();
+    } catch (error) {
+      toast.error(error.message || "Unable to add lab test.");
+    } finally {
+      setSaving(false);
+    }
+  };
   const handleUpdate = async (event) => {
     event.preventDefault();
     if (!canEdit) {
@@ -198,47 +279,10 @@ function LabFiles() {
 
     setSaving(true);
     try {
-      const payload = {
-        testCode: form.testCode.trim(),
-        testName: form.testName.trim(),
-        category: form.category.trim(),
-        sampleType: form.sampleType.trim(),
-        unit: form.unit.trim(),
-        referenceRange: form.referenceRange.trim(),
-        price: Number(form.price) || 0,
-        turnaroundHours: Number(form.turnaroundHours) || 0,
-        instructions: form.instructions.trim(),
-        branchId: Number(form.branchId) || 0,
-        isActive: form.isActive === "true",
-      };
+      const payload = buildLabMasterPayload();
       const url = apiUrl(`Lab/master/${encodeURIComponent(id)}`);
 
-      const sendJson = () =>
-        fetch(url, {
-          method: "PUT",
-          headers: {
-            ...getApiHeaders(),
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(payload),
-        });
-
-      const sendFormData = () => {
-        const formData = new FormData();
-        Object.entries(payload).forEach(([key, value]) => {
-          formData.append(key, value === null || value === undefined ? "" : String(value));
-        });
-        return fetch(url, {
-          method: "PUT",
-          headers: getApiHeaders(),
-          body: formData,
-        });
-      };
-
-      let response = await sendJson();
-      if (response.status === 415) {
-        response = await sendFormData();
-      }
+      let response = await sendLabMasterPayload(url, "PUT", payload);
       if (!response.ok) throw new Error(await getErrorMessage(response, "Unable to update lab file record."));
 
       toast.success("Lab file record updated successfully.");
@@ -247,7 +291,7 @@ function LabFiles() {
       );
       saveImportedLabFileRows(updatedRows);
       setRows(updatedRows);
-      closeEdit();
+      closeForm();
       await loadRows();
     } catch (error) {
       toast.error(error.message || "Unable to update lab file record.");
@@ -296,6 +340,7 @@ function LabFiles() {
           <input ref={fileInputRef} type="file" accept=".csv,.xlsx,.xls" style={{ display: "none" }} onChange={handleImport} />
           <button type="button" className="receptionists-primary-button" onClick={() => fileInputRef.current?.click()} disabled={uploading || !canCreate}><Upload size={16} /> {uploading ? "Importing..." : "Import File"}</button>
           <button type="button" className="receptionists-primary-button lab-files-export" onClick={handleExport}><Download size={16} /> Export File</button>
+          <button type="button" className="receptionists-primary-button lab-files-add" onClick={openAdd} disabled={!canCreate}><Plus size={16} /> Add Test</button>
         </div>
       </div>
 
@@ -332,15 +377,15 @@ function LabFiles() {
         ))}
       </div>
 
-      {editingRow ? (
-        <div className="receptionists-modal-overlay" onClick={closeEdit}>
-          <form className="receptionists-modal lab-files-modal" onClick={(event) => event.stopPropagation()} onSubmit={handleUpdate}>
+      {editingRow || addingRow ? (
+        <div className="receptionists-modal-overlay" onClick={closeForm}>
+          <form className="receptionists-modal lab-files-modal" onClick={(event) => event.stopPropagation()} onSubmit={addingRow ? handleCreate : handleUpdate}>
             <div className="receptionists-modal-header">
               <div className="receptionists-modal-title">
                 <div className="receptionists-modal-icon"><Edit3 size={20} /></div>
                 <div><h3>Edit Lab File Record</h3><p>{form.testName || "Lab master test"}</p></div>
               </div>
-              <button type="button" className="receptionists-modal-close" onClick={closeEdit} disabled={saving}><X size={22} /></button>
+              <button type="button" className="receptionists-modal-close" onClick={closeForm} disabled={saving}><X size={22} /></button>
             </div>
             <div className="receptionists-form lab-files-form">
               <div className="receptionists-field"><label>Test Name</label><input value={form.testName} onChange={(e) => setField("testName", e.target.value)} required /></div>
@@ -356,8 +401,8 @@ function LabFiles() {
               <div className="receptionists-field lab-files-wide-field"><label>Instructions</label><textarea value={form.instructions} onChange={(e) => setField("instructions", e.target.value)} rows={3} /></div>
             </div>
             <div className="receptionists-modal-actions">
-              <button type="button" className="receptionists-secondary-button" onClick={closeEdit} disabled={saving}>Cancel</button>
-              <button type="submit" className="receptionists-save-button" disabled={saving || !canEdit}><CheckCircle size={16} />{saving ? "Saving..." : "Update Record"}</button>
+              <button type="button" className="receptionists-secondary-button" onClick={closeForm} disabled={saving}>Cancel</button>
+              <button type="submit" className="receptionists-save-button" disabled={saving || (addingRow ? !canCreate : !canEdit)}><CheckCircle size={16} />{saving ? "Saving..." : addingRow ? "Add Test" : "Update Record"}</button>
             </div>
           </form>
         </div>
@@ -367,3 +412,4 @@ function LabFiles() {
 }
 
 export default LabFiles;
+

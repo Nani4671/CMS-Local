@@ -2,6 +2,16 @@
   background: #0f766e;
 }
 
+.lab-files-add {
+  background: #2563eb;
+  box-shadow: 0 14px 30px rgba(37, 99, 235, 0.22);
+}
+
+.lab-files-add:hover:not(:disabled) {
+  background: #1d4ed8;
+  box-shadow: 0 16px 34px rgba(37, 99, 235, 0.28);
+}
+
 .lab-files-table {
   display: grid;
   border: 1px solid #d8e4e8;
@@ -120,3 +130,4 @@
     justify-content: flex-start;
   }
 }
+
