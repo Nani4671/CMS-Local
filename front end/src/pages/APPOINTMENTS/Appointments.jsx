@@ -5,6 +5,7 @@ import React, {
   useState,
 } from "react";
 
+import { ActionsGroup } from "../../components/ActionsGroup";
 import "./Appointments.css";
 
 import {
@@ -252,6 +253,7 @@ function Appointments() {
 
   const [selected, setSelected] =
     useState(null);
+  const [activeActionState, setActiveActionState] = useState(null);
 
   const [appointments, setAppointments] =
     useState([]);
@@ -795,21 +797,18 @@ function Appointments() {
 
                 </span>
 
-                {/* ACTION */}
-
-                <button
-                  type="button"
-                  className="appointments-view-btn"
-                  onClick={() =>
-                    setSelected(item)
-                  }
-                >
-
-                  <Eye size={16} />
-
-                  <span>View</span>
-
-                </button>
+                <div className="appointments-actions">
+                  <ActionsGroup
+                    rowId={item.appointmentId}
+                    activeActionState={activeActionState}
+                    setActiveActionState={setActiveActionState}
+                    canView={true}
+                    canEdit={false}
+                    canStatus={false}
+                    canDelete={false}
+                    onView={() => setSelected(item)}
+                  />
+                </div>
 
               </div>
             )

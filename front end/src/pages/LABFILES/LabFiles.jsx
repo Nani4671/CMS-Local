@@ -5,6 +5,7 @@ import { getApiHeaders } from "../../utils/branchApi";
 import { cacheLabMasterTests, getImportedLabFileRows, saveImportedLabFileRows } from "../../utils/labMaster";
 import { useToast } from "../../components/ToastProvider";
 import { useAdminModulePermissions } from "../../utils/rolePermissions";
+import { ActionsGroup } from "../../components/ActionsGroup";
 import "../RECEPTIONISTS/Receptionists.css";
 import "./LabFiles.css";
 
@@ -75,6 +76,7 @@ function LabFiles() {
   const { permissions, canCreate, canEdit, canDelete } = useAdminModulePermissions("Lab Files");
   const fileInputRef = useRef(null);
   const [rows, setRows] = useState([]);
+  const [activeActionState, setActiveActionState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -313,8 +315,18 @@ function LabFiles() {
             <span>{readFirst(row, ["price", "Price", "amount", "Amount"], "0")}</span>
             <span>{String(readFirst(row, ["isActive", "IsActive"], true)) === "false" ? "Inactive" : "Active"}</span>
             <span className="lab-files-actions">
-              <button type="button" title="Edit lab file record" onClick={() => openEdit(row)} disabled={!canEdit}><Edit3 size={16} /></button>
-              <button type="button" title="Delete lab file record" className="danger" onClick={() => handleDelete(row)} disabled={!canDelete}><Trash2 size={16} /></button>
+              <ActionsGroup
+                rowId={readFirst(row, ["id", "Id", "testId", "TestId", "testCode"], index)}
+                activeActionState={activeActionState}
+                setActiveActionState={setActiveActionState}
+                canView={true}
+                canEdit={canEdit}
+                canStatus={false}
+                canDelete={canDelete}
+                onView={() => openEdit(row)}
+                onEdit={() => openEdit(row)}
+                onDelete={() => handleDelete(row)}
+              />
             </span>
           </div>
         ))}

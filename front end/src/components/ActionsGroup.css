@@ -1,0 +1,164 @@
+/* Actions Group & Column Styling matching Reference Image */
+
+.actions-header-cell {
+  text-align: center;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1e3a8a;
+  padding: 10px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.actions-group {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 4px 6px;
+}
+
+.action-btn {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  cursor: pointer;
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  transition:
+    background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.action-btn:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.action-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* 1. VIEW BUTTON */
+.action-btn.view-btn {
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+.action-btn.view-btn:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+.action-btn.view-btn:active,
+.action-btn.view-btn.is-active {
+  background: #dbeafe !important;
+  border-color: #3b82f6 !important;
+  color: #1d4ed8 !important;
+  transform: scale(0.96);
+  box-shadow: inset 0 1px 3px rgba(30, 58, 138, 0.12), 0 2px 6px rgba(59, 130, 246, 0.15);
+}
+
+/* 2. EDIT BUTTON */
+.action-btn.edit-btn {
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+.action-btn.edit-btn:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+.action-btn.edit-btn:active,
+.action-btn.edit-btn.is-active {
+  background: #e2e8f0 !important;
+  border-color: #64748b !important;
+  color: #0f172a !important;
+  transform: scale(0.96);
+  box-shadow: inset 0 1px 3px rgba(15, 23, 42, 0.12), 0 2px 6px rgba(100, 116, 139, 0.15);
+}
+
+:root {
+  --status-enabled: #16a34a;
+  --status-enabled-bg: #f0fdf4;
+  --status-enabled-border: #bbf7d0;
+
+  --status-disabled: #dc2626;
+  --status-disabled-bg: #fef2f2;
+  --status-disabled-border: #fecaca;
+}
+
+/* 3. STATUS BUTTON - DYNAMIC ENABLED (GREEN) / DISABLED (RED) */
+.action-btn.status-btn {
+  border-color: #cbd5e1;
+  color: #0d9488;
+}
+
+.action-btn.status-btn.status-enabled {
+  color: var(--status-enabled);
+  background: var(--status-enabled-bg);
+  border: 1px solid var(--status-enabled-border);
+}
+.action-btn.status-btn.status-enabled:hover:not(:disabled) {
+  background: #dcfce7;
+  border-color: var(--status-enabled);
+  color: #15803d;
+}
+.action-btn.status-btn.status-enabled:active,
+.action-btn.status-btn.status-enabled.is-active {
+  background: #bbf7d0 !important;
+  border-color: #16a34a !important;
+  color: #15803d !important;
+  transform: scale(0.96);
+  box-shadow: inset 0 1px 3px rgba(22, 163, 74, 0.15), 0 2px 6px rgba(22, 163, 74, 0.2);
+}
+
+.action-btn.status-btn.status-disabled {
+  color: var(--status-disabled);
+  background: var(--status-disabled-bg);
+  border: 1px solid var(--status-disabled-border);
+}
+.action-btn.status-btn.status-disabled:hover:not(:disabled) {
+  background: #fee2e2;
+  border-color: var(--status-disabled);
+  color: #b91c1c;
+}
+.action-btn.status-btn.status-disabled:active,
+.action-btn.status-btn.status-disabled.is-active {
+  background: #fecaca !important;
+  border-color: #dc2626 !important;
+  color: #b91c1c !important;
+  transform: scale(0.96);
+  box-shadow: inset 0 1px 3px rgba(220, 38, 38, 0.15), 0 2px 6px rgba(220, 38, 38, 0.2);
+}
+
+/* 4. DELETE BUTTON */
+.action-btn.delete-btn {
+  border-color: #cbd5e1;
+  color: #ef4444;
+}
+.action-btn.delete-btn:hover {
+  background: #fef2f2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+.action-btn.delete-btn:active,
+.action-btn.delete-btn.is-active {
+  background: #fee2e2 !important;
+  border-color: #ef4444 !important;
+  color: #dc2626 !important;
+  transform: scale(0.96);
+  box-shadow: inset 0 1px 3px rgba(220, 38, 38, 0.12), 0 2px 6px rgba(239, 68, 68, 0.15);
+}

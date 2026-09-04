@@ -10,6 +10,7 @@ import {
   X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ActionsGroup } from "../../components/ActionsGroup";
 import { parseList, requestJson as defaultRequestJson } from "../receptionApi";
 import {
   getReceptionistScope,
@@ -442,6 +443,7 @@ function ReceptionPatients({
   const [message, setMessage] = useState("");
   const [fieldErrors, setFieldErrors] = useState({});
   const [areaOptions, setAreaOptions] = useState([]);
+  const [activeActionState, setActiveActionState] = useState(null);
 
   const fetchPatients = useCallback(() =>
     apiRequest("Patient")
@@ -903,9 +905,17 @@ function ReceptionPatients({
               <span>{getPatientPhone(patient) || "-"}</span>
               <span>{getPatientAge(patient) ? `${getPatientAge(patient)} yrs` : "-"}</span>
               <span className="rc-row-actions">
-                <button
-                  aria-label="View patient"
-                  onClick={() => {
+                <ActionsGroup
+                  rowId={getPatientId(patient)}
+                  activeActionState={activeActionState}
+                  setActiveActionState={setActiveActionState}
+                  canView={true}
+                  canEdit={canEditPatient}
+                  canStatus={true}
+                  canDelete={canDeletePatient}
+                  statusChecked={patient.isActive !== false && patient.status !== "inactive"}
+                  statusTitle="Medical History"
+                  onView={() => {
                     const dateOfBirth = getPatientDateOfBirth(patient);
                     setForm({
                       ...patient,
@@ -916,34 +926,12 @@ function ReceptionPatients({
                     });
                     setModal("view");
                   }}
-                >
-                  <Eye size={15} />
-                </button>
-                {canEditPatient ? (
-                  <button
-                    aria-label="Edit patient"
-                    onClick={() => openEdit(patient)}
-                    title="Edit patient"
-                  >
-                    <Pencil size={15} />
-                  </button>
-                ) : null}
-                <button
-                  onClick={() =>
+                  onEdit={() => openEdit(patient)}
+                  onStatus={() =>
                     navigate(`${basePath}/medical-history?patientId=${getPatientId(patient)}`)
                   }
-                >
-                  <HeartPulse size={15} /> Medical History
-                </button>
-                {canDeletePatient ? (
-                  <button
-                    className="danger"
-                    onClick={() => deletePatient(patient)}
-                    title="Delete patient"
-                  >
-                    <Trash2 size={15} /> Delete
-                  </button>
-                ) : null}
+                  onDelete={() => deletePatient(patient)}
+                />
               </span>
             </div>
           ))}

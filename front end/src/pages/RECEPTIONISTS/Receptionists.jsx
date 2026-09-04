@@ -13,6 +13,7 @@ import {
   UserCheck,
   X,
 } from "lucide-react";
+import { ActionsGroup } from "../../components/ActionsGroup";
 import "./Receptionists.css";
 import AuthImage, { resolveApiImageUrl } from "../../utils/AuthImage";
 import { apiUrl } from "../../config/api";
@@ -264,6 +265,7 @@ function Receptionists() {
   const { canCreate, canEdit, canDelete } = useAdminModulePermissions("Receptionists");
   const imageInputRef = useRef(null);
   const [receptionists, setReceptionists] = useState([]);
+  const [activeActionState, setActiveActionState] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -842,43 +844,22 @@ function Receptionists() {
               </span>
 
               <div className="receptionists-actions">
-                <button
-                  type="button"
-                  className="receptionists-action-button"
-                  onClick={() => window.alert(`Receptionist: ${receptionist.name || "-"}\nBranch: ${getReceptionistBranchName(receptionist, branchNameById) || "-"}\nEmail: ${receptionist.email || "-"}\nPhone: ${receptionist.phone || "-"}\nStatus: ${isActive ? "Active" : "Inactive"}`)}
-                  title="View receptionist"
-                >
-                  <Eye size={14} />
-                </button>
-                <button
-                  type="button"
-                  className="receptionists-action-button"
-                  onClick={() => openEditModal(receptionist)}
-                  disabled={isDeleting || !canEdit}
-                  title="Edit receptionist"
-                >
-                  <Pencil size={14} />
-                </button>
-
-                <button
-                  type="button"
-                  className="receptionists-action-button"
-                  onClick={() => toggleReceptionistStatus(receptionist)}
-                  disabled={isDeleting || !canEdit}
-                  title={isActive ? "Deactivate receptionist" : "Activate receptionist"}
-                >
-                  {isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
-                </button>
-
-                <button
-                  type="button"
-                  className="receptionists-action-button receptionists-action-danger"
-                  onClick={() => handleDelete(receptionist)}
-                  disabled={isDeleting || !canDelete}
-                  title="Delete receptionist"
-                >
-                  <Trash2 size={14} />
-                </button>
+                <ActionsGroup
+                  rowId={receptionist.id}
+                  activeActionState={activeActionState}
+                  setActiveActionState={setActiveActionState}
+                  canView={true}
+                  canEdit={canEdit}
+                  canStatus={canEdit}
+                  canDelete={canDelete}
+                  statusChecked={isActive}
+                  statusDisabled={isDeleting}
+                  statusTitle={isActive ? "Deactivate receptionist" : "Activate receptionist"}
+                  onView={() => window.alert(`Receptionist: ${receptionist.name || "-"}\nBranch: ${getReceptionistBranchName(receptionist, branchNameById) || "-"}\nEmail: ${receptionist.email || "-"}\nPhone: ${receptionist.phone || "-"}\nStatus: ${isActive ? "Active" : "Inactive"}`)}
+                  onEdit={() => openEditModal(receptionist)}
+                  onStatus={() => toggleReceptionistStatus(receptionist)}
+                  onDelete={() => handleDelete(receptionist)}
+                />
               </div>
             </div>
           );

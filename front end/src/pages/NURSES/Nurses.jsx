@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Camera, CheckCircle, Eye, Pencil, Plus, RefreshCw, Search, ShieldPlus, Trash2, ToggleLeft, ToggleRight, X } from "lucide-react";
+import { ActionsGroup } from "../../components/ActionsGroup";
 import "../RECEPTIONISTS/Receptionists.css";
 import { apiUrl } from "../../config/api";
 import { useToast } from "../../components/ToastProvider";
@@ -139,6 +140,7 @@ function Nurses() {
     clinicName: localStorage.getItem("clinicName"),
   }, "Clinic");
   const [nurses, setNurses] = useState([]);
+  const [activeActionState, setActiveActionState] = useState(null);
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingBranches, setLoadingBranches] = useState(true);
@@ -498,41 +500,22 @@ function Nurses() {
                 </span>
               </span>
               <div className="receptionists-actions">
-                <button
-                  type="button"
-                  className="receptionists-action-button"
-                  onClick={() => window.alert(`Nurse: ${name || "-"}\nBranch: ${getNurseBranchName(nurse, branchNameById) || "-"}\nEmail: ${getNurseEmail(nurse) || "-"}\nPhone: ${getNursePhone(nurse) || "-"}\nStatus: ${status || "-"}`)}
-                  title="View nurse"
-                >
-                  <Eye size={16} />
-                </button>
-                <button
-                  type="button"
-                  className="receptionists-action-button"
-                  onClick={() => openEditModal(nurse)}
-                  title="Edit nurse"
-                  disabled={deletingId === String(getNurseId(nurse)) || !canEdit}
-                >
-                  <Pencil size={16} />
-                </button>
-                <button
-                  type="button"
-                  className="receptionists-action-button"
-                  onClick={() => toggleNurseStatus(nurse)}
-                  title={status.toLowerCase().includes("inactive") ? "Activate nurse" : "Deactivate nurse"}
-                  disabled={deletingId === String(getNurseId(nurse)) || !canEdit}
-                >
-                  {status.toLowerCase().includes("inactive") ? <ToggleLeft size={16} /> : <ToggleRight size={16} />}
-                </button>
-                <button
-                  type="button"
-                  className="receptionists-action-button receptionists-action-danger"
-                  onClick={() => handleDeleteNurse(nurse)}
-                  title="Delete nurse"
-                  disabled={deletingId === String(getNurseId(nurse)) || !canDelete}
-                >
-                  <Trash2 size={16} />
-                </button>
+                <ActionsGroup
+                  rowId={getNurseId(nurse)}
+                  activeActionState={activeActionState}
+                  setActiveActionState={setActiveActionState}
+                  canView={true}
+                  canEdit={canEdit}
+                  canStatus={canEdit}
+                  canDelete={canDelete}
+                  statusChecked={!status.toLowerCase().includes("inactive")}
+                  statusDisabled={deletingId === String(getNurseId(nurse))}
+                  statusTitle={status.toLowerCase().includes("inactive") ? "Activate nurse" : "Deactivate nurse"}
+                  onView={() => window.alert(`Nurse: ${name || "-"}\nBranch: ${getNurseBranchName(nurse, branchNameById) || "-"}\nEmail: ${getNurseEmail(nurse) || "-"}\nPhone: ${getNursePhone(nurse) || "-"}\nStatus: ${status || "-"}`)}
+                  onEdit={() => openEditModal(nurse)}
+                  onStatus={() => toggleNurseStatus(nurse)}
+                  onDelete={() => handleDeleteNurse(nurse)}
+                />
               </div>
             </div>
           );

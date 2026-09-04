@@ -445,6 +445,31 @@
   width: 100%;
   margin-top: 18px;
   font-size: 16px;
+  min-height: 48px;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  line-height: 1 !important;
+  padding: 12px 20px !important;
+}
+
+.admin-settings-save svg,
+.admin-settings-upload svg,
+.admin-settings-secondary svg {
+  display: block !important;
+  flex-shrink: 0 !important;
+  margin: 0 !important;
+}
+
+.admin-settings-save span,
+.admin-settings-upload span,
+.admin-settings-secondary span {
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1 !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 .admin-settings-logo-delete {

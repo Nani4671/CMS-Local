@@ -7,6 +7,7 @@ import {
   saveRole,
   saveRoleModulePermission,
 } from "../superAdminApi";
+import { ActionsGroup } from "../../../components/ActionsGroup";
 import { saveRoleModulePermissions } from "../../../utils/rolePermissions";
 
 const PERMISSIONS = ["View", "Create", "Edit", "Delete"];
@@ -181,6 +182,7 @@ const roleMatchesAdmin = (role = {}, admin = {}, index = 0) => {
 
 function RolesPermissions() {
   const [roles, setRoles] = useState([]);
+  const [activeActionState, setActiveActionState] = useState(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -371,6 +373,54 @@ function RolesPermissions() {
             : [...currentPermissions, permission]
         ),
       };
+    });
+    setError("");
+    setSuccess("");
+  };
+
+  const areAllPermissionsSelected = useMemo(() => {
+    const map = normalizeModulePermissions(modulePermissions);
+    return ADMIN_MODULES.every((module) => {
+      const list = normalizeOptionalPermissionList(map[module] || []);
+      return PERMISSIONS.every((p) => list.includes(p));
+    });
+  }, [modulePermissions]);
+
+  const isColumnAllSelected = (permission) => {
+    const map = normalizeModulePermissions(modulePermissions);
+    return ADMIN_MODULES.every((module) => {
+      const list = normalizeOptionalPermissionList(map[module] || []);
+      return list.includes(permission);
+    });
+  };
+
+  const toggleSelectAllModulePermissions = () => {
+    setModulePermissions(() => {
+      const nextMap = {};
+      const shouldSelectAll = !areAllPermissionsSelected;
+      ADMIN_MODULES.forEach((module) => {
+        nextMap[module] = shouldSelectAll ? [...PERMISSIONS] : [];
+      });
+      return nextMap;
+    });
+    setError("");
+    setSuccess("");
+  };
+
+  const toggleColumnModulePermission = (permission) => {
+    setModulePermissions((previous) => {
+      const currentMap = normalizeModulePermissions(previous);
+      const shouldSelectColumn = !isColumnAllSelected(permission);
+      const nextMap = {};
+      ADMIN_MODULES.forEach((module) => {
+        const currentList = normalizeOptionalPermissionList(currentMap[module] || []);
+        if (shouldSelectColumn) {
+          nextMap[module] = Array.from(new Set([...currentList, permission]));
+        } else {
+          nextMap[module] = currentList.filter((p) => p !== permission);
+        }
+      });
+      return nextMap;
     });
     setError("");
     setSuccess("");
@@ -611,12 +661,18 @@ function RolesPermissions() {
               </span>
             </span>
             <span className="sa-actions">
-              <button className="sa-icon-btn" type="button" onClick={() => setSelectedAdminId(getAdminId(role.admin))} title="Edit role">
-                <Pencil size={15} />
-              </button>
-              <button className="sa-icon-btn sa-icon-btn--danger" type="button" onClick={() => handleDelete(role)} title="Delete role">
-                <Trash2 size={15} />
-              </button>
+              <ActionsGroup
+                rowId={role.id || getAdminId(role.admin) || index}
+                activeActionState={activeActionState}
+                setActiveActionState={setActiveActionState}
+                canView={true}
+                canEdit={true}
+                canStatus={false}
+                canDelete={true}
+                onView={() => setSelectedAdminId(getAdminId(role.admin))}
+                onEdit={() => setSelectedAdminId(getAdminId(role.admin))}
+                onDelete={() => handleDelete(role)}
+              />
             </span>
           </div>
         ))}
@@ -643,10 +699,35 @@ function RolesPermissions() {
         </div>
         <div className="sa-permission-matrix">
           <div className="sa-permission-head">
-            <span>Module</span>
-            {PERMISSIONS.map((permission) => (
-              <span key={permission}>{permission}</span>
-            ))}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+              <span>Module</span>
+              <button
+                type="button"
+                className="sa-btn sa-btn-primary"
+                style={{ padding: "3px 10px", fontSize: "11px", height: "26px", fontWeight: 700 }}
+                onClick={toggleSelectAllModulePermissions}
+                disabled={saving || !selectedAdmin}
+                title={areAllPermissionsSelected ? "Uncheck all module permissions" : "Check all module permissions"}
+              >
+                <Check size={13} />
+                {areAllPermissionsSelected ? "Deselect All" : "Select All"}
+              </button>
+            </div>
+            {PERMISSIONS.map((permission) => {
+              const checked = isColumnAllSelected(permission);
+              return (
+                <label key={permission} style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer", fontWeight: 700 }}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={saving || !selectedAdmin}
+                    onChange={() => toggleColumnModulePermission(permission)}
+                    title={`Check/Uncheck ${permission} for all modules`}
+                  />
+                  <span>{permission}</span>
+                </label>
+              );
+            })}
           </div>
           {ADMIN_MODULES.map((module) => (
             <div className="sa-permission-row" key={module}>

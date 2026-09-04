@@ -1089,7 +1089,8 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
+  position: relative;
 }
 
 .rc-billing-card-head h3 {
@@ -1101,6 +1102,122 @@
   margin: 0;
   color: #40516a;
   font-size: 12px;
+}
+
+/* --- PAID Stamp & Payment Status Styling --- */
+
+.rc-paid-stamp-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  pointer-events: none;
+  user-select: none;
+  z-index: 5;
+}
+
+.rc-paid-stamp-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 16px;
+  border: 3px double #10b981;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.08);
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.25), 0 2px 6px rgba(16, 185, 129, 0.1);
+  transform: rotate(-6deg);
+  transform-origin: center center;
+  transition: transform 0.2s ease;
+}
+
+.rc-paid-stamp-text {
+  font-family: 'Montserrat', 'Cinzel', 'Arial Black', sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 2.5px;
+  color: #059669;
+  text-transform: uppercase;
+  line-height: 1;
+}
+
+.rc-paid-stamp-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+.rc-paid-stamp-date {
+  font-size: 11px;
+  font-weight: 700;
+  color: #15803d;
+  line-height: 1.3;
+}
+
+.rc-paid-stamp-meta {
+  font-size: 10px;
+  font-weight: 500;
+  color: #047857;
+}
+
+/* Status Badges */
+.rc-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  border-radius: 5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.rc-status-badge-paid {
+  color: #059669;
+  background-color: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.rc-latest-bill-paid-stamp {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 10px;
+  border: 2px double #059669;
+  border-radius: 5px;
+  background: #ecfdf5;
+  color: #059669;
+  font-family: 'Montserrat', 'Arial Black', sans-serif;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transform: rotate(-3deg);
+  box-shadow: 0 1px 4px rgba(16, 185, 129, 0.15);
+  white-space: nowrap;
+}
+
+.rc-status-badge-pending {
+  color: #d97706;
+  background-color: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.rc-status-badge-partial {
+  color: #2563eb;
+  background-color: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.rc-status-badge-cancelled {
+  color: #dc2626;
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
 }
 
 .rc-billing-fields {
@@ -1410,7 +1527,7 @@
 
 .rc-latest-bill-row {
   display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) minmax(108px, max-content) max-content;
+  grid-template-columns: 42px minmax(0, 1fr) auto minmax(108px, max-content) max-content;
   gap: 12px;
   align-items: center;
   padding: 12px;
@@ -1764,6 +1881,8 @@
   border-radius: 8px;
   padding: 0 12px;
   background: #fff;
+  box-sizing: border-box;
+  line-height: normal;
 }
 
 .rc-unit-input {

@@ -10,8 +10,8 @@ function DataTable({
   className = "",
   preserveColumnFractions = false,
 }) {
-  const normalizeColumnWidth = (width = "minmax(96px, max-content)") =>
-    preserveColumnFractions ? String(width) : String(width).replace(/,\s*[\d.]+fr\)/g, ", max-content)");
+  const normalizeColumnWidth = (width = "minmax(96px, 1fr)") =>
+    String(width);
 
   const gridTemplateColumns = columns
     .map((column) => normalizeColumnWidth(column.width))

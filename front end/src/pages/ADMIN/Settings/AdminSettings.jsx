@@ -825,11 +825,11 @@ function AdminSettings() {
           </div>
           <button className="admin-settings-save" type="submit" disabled={saving || (hasRemoteSettings ? !canEdit : !canCreate)} style={{ background: previewBranding.accentColor }}>
             <Save size={18} />
-            {saving ? "Saving..." : hasRemoteSettings ? "Update Settings" : "Save Settings"}
+            <span>{saving ? "Saving..." : hasRemoteSettings ? "Update Settings" : "Save Settings"}</span>
           </button>
           <button className="admin-settings-secondary admin-settings-logo-delete" type="button" onClick={deleteLogo} disabled={loading || saving || !canDelete}>
             <Trash2 size={16} />
-            Delete Logo
+            <span>Delete Logo</span>
           </button>
           {status ? <p className={`admin-settings-status admin-settings-status--${statusType}`}>{status}</p> : null}
         </section>

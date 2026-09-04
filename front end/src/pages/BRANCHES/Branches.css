@@ -277,36 +277,36 @@
 
 .branches-table {
   background: #ffffff;
-  border: 1px solid #dbe3ed;
-  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
   overflow-x: auto;
   overflow-y: hidden;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
 .branches-thead,
 .branches-row {
   display: grid;
   grid-template-columns:
-    58px
-    minmax(170px, 0.95fr)
-    minmax(190px, 1fr)
-    minmax(230px, 1.25fr)
-    110px
-    152px;
-  column-gap: 8px;
+    70px
+    minmax(200px, 1.2fr)
+    minmax(200px, 1fr)
+    minmax(320px, 2fr)
+    130px
+    minmax(210px, auto);
+  column-gap: 12px;
   align-items: center;
   width: 100%;
   box-sizing: border-box;
 }
 
 .branches-thead {
-  min-height: 44px;
-  padding: 0 14px;
+  min-height: 48px;
+  padding: 12px 16px;
   border-bottom: 1px solid #e2e8f0;
-  color: #475569;
-  font-size: 12px;
-  font-weight: 800;
+  color: #1e3a8a;
+  font-size: 13.5px;
+  font-weight: 700;
   background: #f8fafc;
 }
 
@@ -317,11 +317,13 @@
 .branches-thead span:nth-child(5),
 .branches-row > .branches-cell:nth-child(5) {
   justify-self: center;
+  text-align: center;
 }
 
 .branches-thead span:nth-child(6),
 .branches-actions {
   justify-self: center;
+  text-align: center;
 }
 
 .branches-actions-heading,
@@ -334,12 +336,16 @@
 
 .branches-actions {
   background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
 }
 
 .branches-row {
-  min-height: 72px;
-  padding: 10px 14px;
-  border-bottom: 1px solid #eef2f7;
+  min-height: 64px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .branches-row:last-child {
@@ -354,12 +360,12 @@
 }
 
 .branches-avatar {
-  width: 40px;
-  height: 40px;
-  flex: 0 0 40px;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
   border-radius: 10px;
   background: #e0f2fe;
-  color: #0369a1;
+  color: #0284c7;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -370,6 +376,7 @@
   display: block;
   color: #0f172a;
   font-size: 14px;
+  font-weight: 700;
   line-height: 1.35;
   overflow-wrap: anywhere;
 }
@@ -377,7 +384,7 @@
 .branches-name-cell span,
 .branches-cell span {
   display: block;
-  margin-top: 3px;
+  margin-top: 2px;
   color: #64748b;
   font-size: 12px;
   line-height: 1.3;
@@ -386,26 +393,26 @@
 
 .branches-cell {
   min-width: 0;
-  color: #334155;
-  font-size: 13px;
-  line-height: 1.35;
+  color: #475569;
+  font-size: 13.5px;
+  line-height: 1.4;
   overflow-wrap: anywhere;
-}
-
-.branches-cell span {
+  white-space: normal;
   word-break: break-word;
 }
 
 .branches-status {
-  min-width: 72px;
-  height: 26px;
+  width: fit-content;
+  margin: 0 auto;
+  min-height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  padding: 0 11px;
-  font-size: 12px;
-  font-weight: 800;
+  padding: 6px 16px;
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 /* Override the generic cell span rule so badge content remains flex-centered. */
@@ -420,11 +427,13 @@
 .branches-status-active {
   background: #dcfce7;
   color: #15803d;
+  border: 1px solid #bbf7d0;
 }
 
 .branches-status-inactive {
-  background: #ffe4e6;
-  color: #be123c;
+  background: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #cbd5e1;
 }
 
 .branches-actions {
