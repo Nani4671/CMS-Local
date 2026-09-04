@@ -1,6 +1,17 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowLeft, CalendarDays, CheckCircle, Edit3, Eye, FileText, History, Minus, Printer, Trash2 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { PaymentStatusBadge, PaidStamp, formatPaidDateTime } from "../../components/PaymentStatus";
+import { ActionsGroup } from "../../components/ActionsGroup";
+import {
+  OpBillingHeader,
+  PatientDoctorBanner,
+  BookedAppointmentField,
+  MiddleToolbarRow,
+  PaymentModeDiscountRow,
+  ChargesBreakdownTable,
+  ThreeButtonActionBar,
+} from "../../components/OpBillingUi";
 import { parseList, requestJson } from "../receptionApi";
 import { getReceptionistProfile } from "../receptionSession";
 import { getNurseProfile } from "../../Nurse/nurseSession";
@@ -592,6 +603,9 @@ const printServiceInvoice = ({
       <body>
         <main class="invoice">
           <div class="watermark"><img src="${escapeHtml(logoUrl)}" alt="" /></div>
+          <div style="position: absolute; top: 22px; right: 28px; border: 3px double #10b981; border-radius: 6px; padding: 4px 14px; color: #059669; font-size: 20px; font-weight: 900; letter-spacing: 2.5px; transform: rotate(-6deg); background: rgba(16,185,129,0.08); text-transform: uppercase; z-index: 10; pointer-events: none;">
+            PAID
+          </div>
           <section class="head">
             <div>
               <div class="clinic-title">
@@ -1433,6 +1447,7 @@ function ReceptionBilling() {
   const canEditBill = canUseModulePermission(receptionistProfile, "Billing", "Edit");
   const canDeleteBill = canUseModulePermission(receptionistProfile, "Billing", "Delete");
   const receptionistScope = useMemo(() => getReceptionistScope(), []);
+  const [activeActionState, setActiveActionState] = useState(null);
   const clinicName = getClinicDisplayName(receptionistProfile, "CMS Clinic");
   const clinicId = receptionistProfile.hospitalId || localStorage.getItem("hospitalId") || "";
   const clinicEmail =
@@ -1999,6 +2014,12 @@ function ReceptionBilling() {
       TotalAmount: totalAmount,
       paymentMode: String(details.paymentMode || "Cash"),
       PaymentMode: String(details.paymentMode || "Cash"),
+      paymentStatus: "Paid",
+      PaymentStatus: "Paid",
+      paidDate: new Date().toISOString(),
+      PaidDate: new Date().toISOString(),
+      paymentMethod: String(details.paymentMode || "Cash"),
+      transactionId: details.transactionId || `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
       status: "Paid",
       Status: "Paid",
     };
@@ -2092,6 +2113,11 @@ function ReceptionBilling() {
         grossTotal: details.totals.grossTotal,
         totalAmount: details.totals.total,
         paidAmount: details.totals.total,
+        paymentStatus: "Paid",
+        PaymentStatus: "Paid",
+        paidDate: savedInvoice.paidDate || savedInvoice.PaidDate || editingBill?.paidDate || new Date().toISOString(),
+        paymentMethod: details.paymentMode || "Cash",
+        transactionId: savedInvoice.transactionId || savedInvoice.TransactionId || editingBill?.transactionId || `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
         backendSynced: true,
       };
       setInvoice(invoiceShape);
@@ -2252,6 +2278,12 @@ function ReceptionBilling() {
       TotalAmount: totalAmount,
       paymentMode: String(form.paymentMode || "Cash"),
       PaymentMode: String(form.paymentMode || "Cash"),
+      paymentStatus: "Paid",
+      PaymentStatus: "Paid",
+      paidDate: new Date().toISOString(),
+      PaidDate: new Date().toISOString(),
+      paymentMethod: String(form.paymentMode || "Cash"),
+      transactionId: `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
       status: "Paid",
       Status: "Paid",
     };
@@ -2316,6 +2348,11 @@ function ReceptionBilling() {
         doctorName:
           invoiceData?.doctorName ||
           getAppointmentDoctorName(selectedAppointment),
+        paymentStatus: "Paid",
+        PaymentStatus: "Paid",
+        paidDate: invoiceData?.paidDate || invoiceData?.PaidDate || editingBill?.paidDate || new Date().toISOString(),
+        paymentMethod: String(form.paymentMode || "Cash"),
+        transactionId: invoiceData?.transactionId || invoiceData?.TransactionId || editingBill?.transactionId || `TXN-${Math.floor(100000 + Math.random() * 900000)}`,
         backendSynced: true,
       };
       setInvoice(nextInvoice);
@@ -2919,6 +2956,9 @@ function ReceptionBilling() {
         <body>
           <main class="invoice">
             <div class="watermark"><img src="${escapeHtml(logoUrl)}" alt="" /></div>
+            <div style="position: absolute; top: 22px; right: 28px; border: 3px double #10b981; border-radius: 6px; padding: 4px 14px; color: #059669; font-size: 20px; font-weight: 900; letter-spacing: 2.5px; transform: rotate(-6deg); background: rgba(16,185,129,0.08); text-transform: uppercase; z-index: 10; pointer-events: none;">
+              PAID
+            </div>
             <section class="brand-row">
               <div class="brand">
                 <img src="${escapeHtml(logoUrl)}" alt="Clinic logo" />
@@ -3005,6 +3045,56 @@ function ReceptionBilling() {
     printWindow.document.close();
   };
 
+  const activeBill = editingBill || invoice;
+  const activePaymentStatus = activeBill
+    ? firstValue(activeBill.paymentStatus, activeBill.PaymentStatus, activeBill.status, activeBill.Status) || "Paid"
+    : null;
+
+  const showPaidStamp = activePaymentStatus === "Paid";
+
+  const activePaidDate = activeBill
+    ? firstValue(activeBill.paidDate, activeBill.PaidDate, activeBill.createdAt, activeBill.billDate, activeBill.invoiceDate) || new Date().toISOString()
+    : new Date().toISOString();
+
+  const activePaymentMethod = activeBill
+    ? firstValue(activeBill.paymentMethod, activeBill.PaymentMethod, activeBill.paymentMode, activeBill.PaymentMode, form.paymentMode) || "Cash"
+    : form.paymentMode || "Cash";
+
+  const activeTransactionId = activeBill
+    ? firstValue(activeBill.transactionId, activeBill.TransactionId) || ""
+    : "";
+
+  const opConsultationCharge = useMemo(() => {
+    if (editingBill) {
+      return readAmount(editingBill, AMOUNT_KEYS.consultation, 0) || readAmount(editingBill, AMOUNT_KEYS.total, 500);
+    }
+    if (invoice && billingMode === "consultation") {
+      return readAmount(invoice, AMOUNT_KEYS.consultation, 0) || readAmount(invoice, AMOUNT_KEYS.total, 500);
+    }
+    const fromApt = Number(
+      firstValue(
+        selectedAppointment?.consultationFee,
+        selectedAppointment?.ConsultationFee,
+        selectedAppointment?.doctorFee,
+        selectedAppointment?.DoctorFee,
+        getAppointmentPaidAmount(selectedAppointment),
+        500
+      )
+    );
+    return Number.isFinite(fromApt) && fromApt > 0 ? fromApt : 500;
+  }, [editingBill, invoice, billingMode, selectedAppointment]);
+
+  const opMedicineCharge = Number(form.medicineCharges || 0);
+  const opLabCharge = Number(form.labCharges || 0);
+  const opServiceCharges = opMedicineCharge + opLabCharge;
+
+  const opSubtotal = opConsultationCharge + opServiceCharges;
+  const opDiscountPercent = normalizeDiscountPercent(form.discount);
+  const opDiscountAmount = getDiscountAmount(opSubtotal, opDiscountPercent);
+  const opTaxableAmount = Math.max(0, opSubtotal - opDiscountAmount);
+  const opTaxAmount = 0;
+  const opTotalAmount = opTaxableAmount;
+
   return (
     <section className="rc-page">
       <div className="rc-page-head">
@@ -3041,7 +3131,7 @@ function ReceptionBilling() {
       </div>
 
       <div className="rc-billing-layout">
-        {billingMode !== "consultation" ? (
+        {billingMode === "consultation" ? null : (
         <form className="rc-card rc-billing-form" onSubmit={generate} noValidate>
           <div className="rc-billing-card-head">
             <div>
@@ -3142,21 +3232,6 @@ function ReceptionBilling() {
             <option value="Card">Card</option>
           </select>
           {fieldErrors.paymentMode ? <small className="rc-field-error">{fieldErrors.paymentMode}</small> : null}
-        </label>
-        <label>
-          <span>Discount (%)</span>
-          <input
-            type="number"
-            min="0"
-            max="100"
-            step="0.01"
-            value={form.discount}
-            placeholder="0"
-            onChange={(e) => setField("discount", e.target.value)}
-            onBlur={() => formatAmountField("discount")}
-            className={fieldErrors.discount ? "is-invalid" : ""}
-          />
-          {fieldErrors.discount ? <small className="rc-field-error">{fieldErrors.discount}</small> : null}
         </label>
         {billingMode === "consultation" ? (
           <>
@@ -3314,17 +3389,41 @@ function ReceptionBilling() {
             <button type="button" className="rc-service-print" onClick={() => openServiceInvoice({ autoPrint: true })}>
               <Printer size={15} /> Print
             </button>
-            <button className="rc-confirm" type="submit" disabled={editingBill ? !canEditBill : !canCreateBill}>
-              <CheckCircle size={15} /> Submit
+            <button
+              className={`rc-confirm ${showPaidStamp ? "is-paid" : ""}`}
+              type="submit"
+              disabled={showPaidStamp || (editingBill ? !canEditBill : !canCreateBill)}
+              onClick={(e) => {
+                if (showPaidStamp) {
+                  e.preventDefault();
+                  const msg = "This bill has already been paid.";
+                  showMessage(msg, "info");
+                  toast.info(msg);
+                }
+              }}
+            >
+              <CheckCircle size={15} /> {showPaidStamp ? "✓ Paid" : "Submit"}
             </button>
           </div>
         ) : (
-          <button className="rc-confirm" type="submit" disabled={editingBill ? !canEditBill : !canCreateBill}>
-            <FileText size={15} /> Generate Invoice
+          <button
+            className={`rc-confirm ${showPaidStamp ? "is-paid" : ""}`}
+            type="submit"
+            disabled={showPaidStamp || (editingBill ? !canEditBill : !canCreateBill)}
+            onClick={(e) => {
+              if (showPaidStamp) {
+                e.preventDefault();
+                const msg = "This bill has already been paid.";
+                showMessage(msg, "info");
+                toast.info(msg);
+              }
+            }}
+          >
+            <FileText size={15} /> {showPaidStamp ? "✓ Paid" : "Generate Invoice"}
           </button>
         )}
       </form>
-        ) : null}
+        )}
 
         <section className="rc-card rc-latest-bills">
           <div className="rc-latest-bills-head">
@@ -3349,6 +3448,8 @@ function ReceptionBilling() {
                 const amount = getSavedBillAmount(bill, 0);
                 const createdAt = bill.createdAt || bill.invoiceDate || bill.billDate;
                 const canManageBill = hasBackendBillingId(bill);
+                const rawStatus = String(bill.paymentStatus || bill.PaymentStatus || bill.status || bill.Status || "Paid").trim();
+                const isCleared = rawStatus.toLowerCase() === "paid";
                 return (
                   <article className="rc-latest-bill-row" key={`${invoiceNo}-${index}`}>
                     <div className="rc-latest-bill-pdf">
@@ -3361,25 +3462,28 @@ function ReceptionBilling() {
                         {createdAt ? formatInvoiceDate(createdAt) : "Just now"}
                       </span>
                     </div>
+                    {isCleared ? (
+                      <span className="rc-latest-bill-paid-stamp">PAID</span>
+                    ) : (
+                      <PaymentStatusBadge status={rawStatus} />
+                    )}
                     <b>{formatCurrency(amount)}</b>
                     <div className="rc-latest-bill-actions">
-                      <button type="button" onClick={() => viewRecentServiceBill(bill)} aria-label="View bill PDF">
-                        <FileText size={16} />
-                      </button>
-                      {canManageBill ? (
-                        <>
-                          {canEditBill ? (
-                            <button type="button" onClick={() => editRecentServiceBill(bill)} aria-label="Edit bill">
-                              <Edit3 size={16} />
-                            </button>
-                          ) : null}
-                          {canDeleteBill ? (
-                            <button type="button" onClick={() => deleteRecentServiceBill(bill)} aria-label="Delete bill">
-                              <Trash2 size={16} />
-                            </button>
-                          ) : null}
-                        </>
-                      ) : null}
+                      <ActionsGroup
+                        rowId={invoiceNo}
+                        activeActionState={activeActionState}
+                        setActiveActionState={setActiveActionState}
+                        canView={true}
+                        canEdit={canManageBill && canEditBill}
+                        canStatus={true}
+                        statusChecked={isCleared}
+                        canDelete={canManageBill && canDeleteBill}
+                        statusTitle={isCleared ? "Bill Cleared / Paid" : "Bill Pending"}
+                        onView={() => viewRecentServiceBill(bill)}
+                        onEdit={() => editRecentServiceBill(bill)}
+                        onStatus={() => viewRecentServiceBill(bill)}
+                        onDelete={() => deleteRecentServiceBill(bill)}
+                      />
                     </div>
                   </article>
                 );

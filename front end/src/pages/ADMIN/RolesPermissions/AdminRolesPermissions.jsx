@@ -5,6 +5,7 @@ import {
   removeRoleModulePermissions,
   saveRoleModulePermissions,
 } from "../../../utils/rolePermissions";
+import { ActionsGroup } from "../../../components/ActionsGroup";
 import { useAdminModulePermissions } from "../../../utils/rolePermissions";
 
 const PERMISSIONS = ["View", "Create", "Edit", "Delete"];
@@ -357,6 +358,7 @@ function AdminRolesPermissions() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
+  const [activeActionState, setActiveActionState] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [roleMatrix, setRoleMatrix] = useState(emptyRoleMatrix);
   const [savingRole, setSavingRole] = useState("");
@@ -371,6 +373,11 @@ function AdminRolesPermissions() {
   const selectedUser = useMemo(
     () => eligibleUsers.find((user) => String(user.id) === String(form.userId)),
     [eligibleUsers, form.userId]
+  );
+
+  const formModulePermissions = useMemo(
+    () => normalizeModulePermissionMap(form.modulePermissions, form.role),
+    [form.modulePermissions, form.role]
   );
 
   const loadData = async () => {
@@ -603,6 +610,122 @@ function AdminRolesPermissions() {
     setSuccess("");
   };
 
+  const areAllStaffPermissionsSelected = useMemo(() => {
+    return STAFF_ROLES.every((role) => {
+      const roleMap = normalizeModulePermissionMap(roleMatrix[role], role);
+      const modules = getRoleModules(role);
+      return modules.every((module) => {
+        const list = normalizePermissionList(roleMap[module] || []);
+        return PERMISSIONS.every((p) => list.includes(p));
+      });
+    });
+  }, [roleMatrix]);
+
+  const isColumnStaffAllSelected = (permission) => {
+    return STAFF_ROLES.every((role) => {
+      const roleMap = normalizeModulePermissionMap(roleMatrix[role], role);
+      const modules = getRoleModules(role);
+      return modules.every((module) => {
+        const list = normalizePermissionList(roleMap[module] || []);
+        return list.includes(permission);
+      });
+    });
+  };
+
+  const toggleSelectAllStaffPermissions = () => {
+    setRoleMatrix(() => {
+      const nextMatrix = {};
+      const shouldSelectAll = !areAllStaffPermissionsSelected;
+      STAFF_ROLES.forEach((role) => {
+        const modules = getRoleModules(role);
+        nextMatrix[role] = {};
+        modules.forEach((module) => {
+          nextMatrix[role][module] = shouldSelectAll ? [...PERMISSIONS] : [];
+        });
+      });
+      return nextMatrix;
+    });
+    setError("");
+    setSuccess("");
+  };
+
+  const toggleColumnStaffPermission = (permission) => {
+    setRoleMatrix((previous) => {
+      const shouldSelectColumn = !isColumnStaffAllSelected(permission);
+      const nextMatrix = {};
+      STAFF_ROLES.forEach((role) => {
+        const currentMap = normalizeModulePermissionMap(previous[role], role);
+        const modules = getRoleModules(role);
+        nextMatrix[role] = {};
+        modules.forEach((module) => {
+          const currentList = normalizePermissionList(currentMap[module] || []);
+          if (shouldSelectColumn) {
+            nextMatrix[role][module] = Array.from(new Set([...currentList, permission]));
+          } else {
+            nextMatrix[role][module] = currentList.filter((p) => p !== permission);
+          }
+        });
+      });
+      return nextMatrix;
+    });
+    setError("");
+    setSuccess("");
+  };
+
+  const isFormColumnAllSelected = (permission) => {
+    const map = formModulePermissions;
+    const modules = getRoleModules(form.role);
+    return modules.every((module) => {
+      const list = normalizePermissionList(map[module] || []);
+      return list.includes(permission);
+    });
+  };
+
+  const isFormAllPermissionsSelected = useMemo(() => {
+    const map = formModulePermissions;
+    const modules = getRoleModules(form.role);
+    return modules.every((module) => {
+      const list = normalizePermissionList(map[module] || []);
+      return PERMISSIONS.every((p) => list.includes(p));
+    });
+  }, [formModulePermissions, form.role]);
+
+  const toggleFormSelectAll = () => {
+    setForm((previous) => {
+      const modules = getRoleModules(previous.role);
+      const shouldSelectAll = !isFormAllPermissionsSelected;
+      const nextMap = {};
+      modules.forEach((module) => {
+        nextMap[module] = shouldSelectAll ? [...PERMISSIONS] : [];
+      });
+      return {
+        ...previous,
+        modulePermissions: nextMap,
+      };
+    });
+  };
+
+  const toggleFormColumnPermission = (permission) => {
+    setForm((previous) => {
+      const currentMap = normalizeModulePermissionMap(previous.modulePermissions, previous.role);
+      const modules = getRoleModules(previous.role);
+      const shouldSelectColumn = !isFormColumnAllSelected(permission);
+      const nextMap = {};
+      modules.forEach((module) => {
+        const currentList = normalizePermissionList(currentMap[module] || []);
+        if (shouldSelectColumn) {
+          nextMap[module] = Array.from(new Set([...currentList, permission]));
+        } else {
+          nextMap[module] = currentList.filter((p) => p !== permission);
+        }
+      });
+      return {
+        ...previous,
+        modulePermissions: nextMap,
+      };
+    });
+  };
+
   const handleSaveRolePermissions = async (role) => {
     if (!canEdit) {
       setError("You do not have permission to edit role permissions.");
@@ -716,8 +839,6 @@ function AdminRolesPermissions() {
     }
   };
 
-  const formModulePermissions = normalizeModulePermissionMap(form.modulePermissions, form.role);
-
   return (
     <div className="admin-roles-page">
       <div className="sa-page-header">
@@ -780,10 +901,35 @@ function AdminRolesPermissions() {
             <p className="sa-form-subtitle">Only screens with View permission will appear in the staff sidebar.</p>
             <div className="sa-permission-matrix">
               <div className="sa-permission-head">
-                <span>Module</span>
-                {PERMISSIONS.map((permission) => (
-                  <span key={permission}>{permission}</span>
-                ))}
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+                  <span>Module</span>
+                  <button
+                    type="button"
+                    className="sa-btn sa-btn-primary"
+                    style={{ padding: "3px 10px", fontSize: "11px", height: "26px", fontWeight: 700 }}
+                    onClick={toggleFormSelectAll}
+                    disabled={!(canCreate || canEdit)}
+                    title={isFormAllPermissionsSelected ? "Uncheck all module permissions" : "Check all module permissions"}
+                  >
+                    <Check size={13} />
+                    {isFormAllPermissionsSelected ? "Deselect All" : "Select All"}
+                  </button>
+                </div>
+                {PERMISSIONS.map((permission) => {
+                  const checked = isFormColumnAllSelected(permission);
+                  return (
+                    <label key={permission} style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer", fontWeight: 700 }}>
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        disabled={!(canCreate || canEdit)}
+                        onChange={() => toggleFormColumnPermission(permission)}
+                        title={`Check/Uncheck ${permission} for all modules`}
+                      />
+                      <span>{permission}</span>
+                    </label>
+                  );
+                })}
               </div>
               {getRoleModules(form.role).map((module) => {
                 const permissions = normalizePermissionList(formModulePermissions[module]);
@@ -863,12 +1009,18 @@ function AdminRolesPermissions() {
                 .join(" | ") || normalizePermissionList(assignment.permissions).join(", ") || "-"}
             </span>
             <span className="sa-actions">
-              <button className="sa-icon-btn" type="button" onClick={() => openEdit(assignment)} disabled={!canEdit} title="Edit permissions">
-                <Pencil size={15} />
-              </button>
-              <button className="sa-icon-btn sa-icon-btn--danger" type="button" onClick={() => handleDelete(assignment)} disabled={!canDelete} title="Delete permissions">
-                <Trash2 size={15} />
-              </button>
+              <ActionsGroup
+                rowId={assignment.id || `${assignment.email}-${index}`}
+                activeActionState={activeActionState}
+                setActiveActionState={setActiveActionState}
+                canView={true}
+                canEdit={canEdit}
+                canStatus={false}
+                canDelete={canDelete}
+                onView={() => openEdit(assignment)}
+                onEdit={() => openEdit(assignment)}
+                onDelete={() => handleDelete(assignment)}
+              />
             </span>
           </div>
         ))}
@@ -879,10 +1031,35 @@ function AdminRolesPermissions() {
         <p className="sa-form-subtitle">Assign default permissions by role across every module from that role sidebar.</p>
         <div className="sa-permission-matrix sa-permission-matrix--assign">
           <div className="sa-permission-head">
-            <span>Role / Module</span>
-            {PERMISSIONS.map((permission) => (
-              <span key={permission}>{permission}</span>
-            ))}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+              <span>Role / Module</span>
+              <button
+                type="button"
+                className="sa-btn sa-btn-primary"
+                style={{ padding: "3px 10px", fontSize: "11px", height: "26px", fontWeight: 700 }}
+                onClick={toggleSelectAllStaffPermissions}
+                disabled={Boolean(savingRole) || loading || !canEdit}
+                title={areAllStaffPermissionsSelected ? "Uncheck all staff permissions" : "Check all staff permissions"}
+              >
+                <Check size={13} />
+                {areAllStaffPermissionsSelected ? "Deselect All" : "Select All"}
+              </button>
+            </div>
+            {PERMISSIONS.map((permission) => {
+              const checked = isColumnStaffAllSelected(permission);
+              return (
+                <label key={permission} style={{ display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer", fontWeight: 700 }}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={Boolean(savingRole) || !canEdit}
+                    onChange={() => toggleColumnStaffPermission(permission)}
+                    title={`Check/Uncheck ${permission} for all staff roles`}
+                  />
+                  <span>{permission}</span>
+                </label>
+              );
+            })}
             <span>Actions</span>
           </div>
           {STAFF_ROLES.map((role) => {

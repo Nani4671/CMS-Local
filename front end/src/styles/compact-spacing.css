@@ -553,3 +553,56 @@
     align-items: stretch !important;
   }
 }
+
+/* Universal Reference Table UI System */
+:where(.sa-table, .branches-table, .rc-table, .patients-table, .doctors-table, .receptionists-table, .appointments-table) {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04) !important;
+  overflow-x: auto !important;
+}
+
+:where(.sa-table-head, .branches-thead, .rc-table-head, .patients-table-head, .doctors-table-head, .receptionists-table-head, .appointments-table-head) {
+  background: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  color: #1e3a8a !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  min-height: 48px !important;
+  padding: 12px 16px !important;
+}
+
+:where(.sa-table-row, .branches-row, .rc-table-row, .patients-row, .doctors-row, .receptionists-row, .appointments-row) {
+  min-height: 64px !important;
+  padding: 12px 16px !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  align-items: center !important;
+}
+
+:where(.sa-badge, .branches-status, .rc-status, .patient-status, .doctor-status) {
+  width: fit-content !important;
+  margin: 0 auto !important;
+  padding: 6px 16px !important;
+  border-radius: 999px !important;
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Universal Button Flex Centering */
+:where(button, .admin-settings-save, .receptionists-primary-button, .sa-btn, .rc-confirm) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  line-height: 1 !important;
+  vertical-align: middle !important;
+}
+
+:where(button, .admin-settings-save, .receptionists-primary-button, .sa-btn, .rc-confirm) > svg {
+  display: block !important;
+  flex-shrink: 0 !important;
+}

@@ -3,6 +3,7 @@ import { Eye, Pencil, ToggleLeft, ToggleRight, Trash2, X } from "lucide-react";
 import Header from "../../../components/superadmin/Header";
 import DataTable from "../../../components/superadmin/DataTable";
 import SearchFilter from "../../../components/superadmin/SearchFilter";
+import { ActionsGroup } from "../../../components/ActionsGroup";
 import {
   deleteUser,
   fetchUser,
@@ -53,6 +54,7 @@ function Users() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [users, setUsers] = useState([]);
+  const [activeActionState, setActiveActionState] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [editingUserId, setEditingUserId] = useState("");
@@ -344,57 +346,31 @@ function Users() {
     {
       key: "actions",
       label: "Actions",
-      width: "minmax(176px, 0.9fr)",
+      width: "minmax(210px, auto)",
       cellClassName: "sa-table-cell--actions",
-      render: (user) => (
-        <div className="sa-actions">
-          {(() => {
-            const canUseRowActions = isAdminRoleUser(user);
-            const isActive = String(user.status || "").trim().toLowerCase() === "active";
-            const disabledTitle = "Actions are available only for active Admin users";
+      render: (user) => {
+        const canUseRowActions = isAdminRoleUser(user);
+        const isActive = String(user.status || "").trim().toLowerCase() === "active";
+        const enableActions = canUseRowActions && isActive;
 
-            const enableActions = canUseRowActions && isActive;
-            const enableToggle = canUseRowActions;
-
-            return (
-              <>
-                <button
-                  className="sa-icon-btn"
-                  onClick={() => openUserDetails(user)}
-                  disabled={!enableActions}
-                  title={enableActions ? "User details" : disabledTitle}
-                >
-                  <Eye size={15} />
-                </button>
-                <button
-                  className="sa-icon-btn"
-                  onClick={() => openEditForm(user)}
-                  disabled={!enableActions}
-                  title={enableActions ? "Edit user" : disabledTitle}
-                >
-                  <Pencil size={15} />
-                </button>
-                <button
-                  className="sa-icon-btn"
-                  onClick={() => toggleStatus(user)}
-                  disabled={!enableToggle}
-                  title={enableToggle ? "Activate or deactivate admin" : "Actions are available only for Admin users"}
-                >
-                  {user.status === "Active" ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
-                </button>
-                <button
-                  className="sa-icon-btn"
-                  onClick={() => handleDelete(user)}
-                  disabled={!enableActions}
-                  title={enableActions ? "Delete user" : disabledTitle}
-                >
-                  <Trash2 size={15} />
-                </button>
-              </>
-            );
-          })()}
-        </div>
-      ),
+        return (
+          <ActionsGroup
+            rowId={user.id}
+            activeActionState={activeActionState}
+            setActiveActionState={setActiveActionState}
+            canView={true}
+            canEdit={enableActions}
+            canStatus={canUseRowActions}
+            canDelete={enableActions}
+            statusChecked={isActive}
+            statusTitle={isActive ? "Deactivate user" : "Activate user"}
+            onView={() => openUserDetails(user)}
+            onEdit={() => openEditForm(user)}
+            onStatus={() => toggleStatus(user)}
+            onDelete={() => handleDelete(user)}
+          />
+        );
+      },
     },
   ];
 

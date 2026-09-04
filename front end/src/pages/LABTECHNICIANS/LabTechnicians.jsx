@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle, Eye, Pencil, Plus, RefreshCw, Search, ToggleLeft, ToggleRight, Trash2, X } from "lucide-react";
+import { ActionsGroup } from "../../components/ActionsGroup";
 import "../RECEPTIONISTS/Receptionists.css";
 import "./LabTechnicians.css";
 import { apiUrl } from "../../config/api";
@@ -111,6 +112,7 @@ function LabTechnicians() {
   const hospitalId = getStoredHospitalId() || localStorage.getItem("clinicId") || "";
   const clinicName = getClinicDisplayName({ hospitalName: localStorage.getItem("hospitalName"), clinicName: localStorage.getItem("clinicName") }, "Clinic");
   const [technicians, setTechnicians] = useState([]);
+  const [activeActionState, setActiveActionState] = useState(null);
   const [branches, setBranches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingBranches, setLoadingBranches] = useState(true);
@@ -353,10 +355,21 @@ function LabTechnicians() {
                 </span>
               </span>
               <div className="receptionists-actions">
-                <button type="button" className="receptionists-action-button" onClick={() => window.alert(`Lab Technician: ${name || "-"}\nBranch: ${getLabTechBranchName(tech, branchNameById) || "-"}\nEmail: ${getLabTechEmail(tech) || "-"}\nPhone: ${getLabTechPhone(tech) || "-"}\nStatus: ${status || "-"}`)} title="View lab technician"><Eye size={16} /></button>
-                <button type="button" className="receptionists-action-button" onClick={() => openModal(tech)} disabled={!canEdit} title="Edit lab technician"><Pencil size={16} /></button>
-                <button type="button" className="receptionists-action-button" onClick={() => toggleTechnicianStatus(tech)} disabled={!canEdit} title={String(status).toLowerCase().includes("inactive") ? "Activate lab technician" : "Deactivate lab technician"}>{String(status).toLowerCase().includes("inactive") ? <ToggleLeft size={16} /> : <ToggleRight size={16} />}</button>
-                <button type="button" className="receptionists-action-button receptionists-action-danger" onClick={() => deleteTechnician(tech)} disabled={!canDelete} title="Delete lab technician"><Trash2 size={16} /></button>
+                <ActionsGroup
+                  rowId={getLabTechId(tech)}
+                  activeActionState={activeActionState}
+                  setActiveActionState={setActiveActionState}
+                  canView={true}
+                  canEdit={canEdit}
+                  canStatus={canEdit}
+                  canDelete={canDelete}
+                  statusChecked={!String(status).toLowerCase().includes("inactive")}
+                  statusTitle={String(status).toLowerCase().includes("inactive") ? "Activate lab technician" : "Deactivate lab technician"}
+                  onView={() => window.alert(`Lab Technician: ${name || "-"}\nBranch: ${getLabTechBranchName(tech, branchNameById) || "-"}\nEmail: ${getLabTechEmail(tech) || "-"}\nPhone: ${getLabTechPhone(tech) || "-"}\nStatus: ${status || "-"}`)}
+                  onEdit={() => openModal(tech)}
+                  onStatus={() => toggleTechnicianStatus(tech)}
+                  onDelete={() => deleteTechnician(tech)}
+                />
               </div>
             </div>
           );

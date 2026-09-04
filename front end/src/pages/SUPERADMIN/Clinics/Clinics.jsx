@@ -7,6 +7,7 @@ import SearchFilter from "../../../components/superadmin/SearchFilter";
 import { deleteClinic, fetchClinics, updateClinicStatus } from "../superAdminApi";
 import { assetUrl } from "../../../config/api";
 import { getDefaultClinicLogo, getPublicClinicLogoUrl } from "../../../utils/clinicBranding";
+import { ActionsGroup } from "../../../components/ActionsGroup";
 
 const readLogoValue = (data = {}) => {
   const source = data?.data && typeof data.data === "object" ? data.data : data || {};
@@ -67,6 +68,7 @@ function ClinicLogo({ clinic }) {
 
 function Clinics() {
   const navigate = useNavigate();
+  const [activeActionState, setActiveActionState] = useState(null);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [selectedClinic, setSelectedClinic] = useState(null);
@@ -153,31 +155,29 @@ function Clinics() {
     {
       key: "serial",
       label: "S.No.",
-      width: "34px",
+      width: "70px",
       render: (_clinic, index) => index + 1,
     },
     {
       key: "name",
       label: "Clinic Name",
-      width: "minmax(150px, 0.9fr)",
-      render: (clinic) => {
-        return (
-          <div className="sa-clinic-name-cell">
-            <span className="sa-clinic-logo sa-clinic-logo--emerald">
-              <ClinicLogo clinic={clinic} />
-            </span>
-            <b>{clinic.name || "-"}</b>
-          </div>
-        );
-      },
+      width: "minmax(200px, 1.2fr)",
+      render: (clinic) => (
+        <div className="sa-clinic-name-cell">
+          <span className="sa-clinic-logo sa-clinic-logo--emerald">
+            <ClinicLogo clinic={clinic} />
+          </span>
+          <b>{clinic.name || "-"}</b>
+        </div>
+      ),
     },
     {
       key: "address",
       label: "Address",
-      width: "minmax(230px, 1.25fr)",
+      width: "minmax(300px, 2fr)",
       render: (clinic) => (
         <span className="sa-clinic-icon-text">
-          <MapPin size={13} />
+          <MapPin size={14} />
           <span>{clinic.address || "-"}</span>
         </span>
       ),
@@ -185,10 +185,10 @@ function Clinics() {
     {
       key: "contactNumber",
       label: "Contact Number",
-      width: "minmax(118px, 0.62fr)",
+      width: "minmax(160px, 1fr)",
       render: (clinic) => (
         <span className="sa-clinic-icon-text sa-clinic-icon-text--phone">
-          <Phone size={13} />
+          <Phone size={14} />
           <span>{clinic.contactNumber || "-"}</span>
         </span>
       ),
@@ -196,7 +196,7 @@ function Clinics() {
     {
       key: "email",
       label: "Email",
-      width: "minmax(145px, 0.68fr)",
+      width: "minmax(180px, 1fr)",
       cellClassName: "sa-table-cell--nowrap",
       render: (clinic) => (
         <span title={clinic.email || ""} className="sa-table-text-overflow">
@@ -207,10 +207,9 @@ function Clinics() {
     {
       key: "status",
       label: "Status",
-      width: "96px",
+      width: "130px",
       render: (clinic) => (
         <span className={`sa-badge sa-clinic-status ${clinic.status === "Active" ? "is-active" : "is-danger"}`}>
-          <i />
           {clinic.status}
         </span>
       ),
@@ -218,32 +217,28 @@ function Clinics() {
     {
       key: "actions",
       label: "Actions",
-      width: "152px",
+      width: "minmax(210px, auto)",
       cellClassName: "sa-table-cell--actions",
       render: (clinic) => {
         const isActive = String(clinic.status || "").trim().toLowerCase() === "active";
-        const disabledTitle = "Clinic inactive - only status toggle is available";
 
         return (
-          <div className="sa-actions">
-            <button className="sa-icon-btn sa-icon-btn--view" onClick={() => setSelectedClinic(clinic)} disabled={!isActive} title={isActive ? "View clinic" : disabledTitle}>
-              <Eye size={13} />
-            </button>
-            <button className="sa-icon-btn sa-icon-btn--edit" onClick={() => navigate(`/superadmin/clinics/edit/${clinic.id}`)} disabled={!isActive} title={isActive ? "Edit clinic" : disabledTitle}>
-              <Pencil size={13} />
-            </button>
-            <button
-              className="sa-icon-btn sa-icon-btn--status"
-              onClick={() => toggleClinicStatus(clinic)}
-              disabled={updatingClinicId === clinic.id}
-              title={clinic.status === "Active" ? "Deactivate clinic" : "Activate clinic"}
-            >
-              <Camera size={13} />
-            </button>
-            <button className="sa-icon-btn sa-icon-btn--delete" onClick={() => handleDelete(clinic)} disabled={!isActive} title={isActive ? "Delete clinic" : disabledTitle}>
-              <Trash2 size={13} />
-            </button>
-          </div>
+          <ActionsGroup
+            rowId={clinic.id}
+            activeActionState={activeActionState}
+            setActiveActionState={setActiveActionState}
+            canView={true}
+            canEdit={isActive}
+            canStatus={true}
+            canDelete={isActive}
+            statusChecked={isActive}
+            statusDisabled={updatingClinicId === clinic.id}
+            statusTitle={clinic.status === "Active" ? "Deactivate clinic" : "Activate clinic"}
+            onView={() => setSelectedClinic(clinic)}
+            onEdit={() => navigate(`/superadmin/clinics/edit/${clinic.id}`)}
+            onStatus={() => toggleClinicStatus(clinic)}
+            onDelete={() => handleDelete(clinic)}
+          />
         );
       },
     },

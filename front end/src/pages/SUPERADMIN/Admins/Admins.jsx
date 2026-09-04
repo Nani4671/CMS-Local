@@ -3,6 +3,7 @@ import { Eye, Pencil, Phone, Plus, ToggleLeft, ToggleRight, Trash2 } from "lucid
 import Header from "../../../components/superadmin/Header";
 import DataTable from "../../../components/superadmin/DataTable";
 import SearchFilter from "../../../components/superadmin/SearchFilter";
+import { ActionsGroup } from "../../../components/ActionsGroup";
 import {
   deleteAdmin,
   fetchAdmins,
@@ -186,6 +187,7 @@ function Admins() {
   const [showForm, setShowForm] = useState(false);
   const [selectedAdmin, setSelectedAdmin] = useState(null);
   const [admins, setAdmins] = useState([]);
+  const [activeActionState, setActiveActionState] = useState(null);
   const [clinics, setClinics] = useState([]);
   const [form, setForm] = useState(emptyAdmin);
   const [originalAdminClinic, setOriginalAdminClinic] = useState(emptyAdminClinic);
@@ -604,30 +606,27 @@ function Admins() {
     {
       key: "actions",
       label: "Actions",
-      width: "152px",
+      width: "minmax(210px, auto)",
+      cellClassName: "sa-table-cell--actions",
       render: (admin) => {
         const isActive = String(admin.status || "").trim().toLowerCase() === "active";
-        const disabledTitle = "Record inactive — only status toggle is available";
 
         return (
-          <div className="sa-actions">
-            <button className="sa-icon-btn sa-icon-btn--view" onClick={() => setSelectedAdmin(admin)} disabled={!isActive} title={isActive ? "View admin" : disabledTitle}>
-              <Eye size={15} />
-            </button>
-            <button className="sa-icon-btn sa-icon-btn--edit" onClick={() => openEditForm(admin)} disabled={!isActive} title={isActive ? "Edit admin" : disabledTitle}>
-              <Pencil size={15} />
-            </button>
-            <button
-              className="sa-icon-btn sa-icon-btn--status"
-              onClick={() => toggleAdminStatus(admin)}
-              title={admin.status === "Active" ? "Deactivate admin" : "Activate admin"}
-            >
-              {admin.status === "Active" ? <ToggleRight size={16} /> : <ToggleLeft size={16} />}
-            </button>
-            <button className="sa-icon-btn sa-icon-btn--delete" onClick={() => handleDelete(admin)} disabled={!isActive} title={isActive ? "Delete admin" : disabledTitle}>
-              <Trash2 size={15} />
-            </button>
-          </div>
+          <ActionsGroup
+            rowId={admin.id}
+            activeActionState={activeActionState}
+            setActiveActionState={setActiveActionState}
+            canView={true}
+            canEdit={isActive}
+            canStatus={true}
+            canDelete={isActive}
+            statusChecked={isActive}
+            statusTitle={admin.status === "Active" ? "Deactivate admin" : "Activate admin"}
+            onView={() => setSelectedAdmin(admin)}
+            onEdit={() => openEditForm(admin)}
+            onStatus={() => toggleAdminStatus(admin)}
+            onDelete={() => handleDelete(admin)}
+          />
         );
       },
     },

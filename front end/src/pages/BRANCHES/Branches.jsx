@@ -13,6 +13,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { ActionsGroup } from "../../components/ActionsGroup";
 import "./Branches.css";
 import { useToast } from "../../components/ToastProvider";
 import { formatTitleCase } from "../../utils/format";
@@ -144,6 +145,7 @@ function Branches() {
   const clinicBranding = getClinicInvoiceBranding({ clinicId: hospitalId, clinicName });
 
   const [branches, setBranches] = useState([]);
+  const [activeActionState, setActiveActionState] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -726,45 +728,22 @@ function Branches() {
                 </span>
               </span>
               <div className="branches-actions">
-                <button
-                  type="button"
-                  className="branches-action-button"
-                  onClick={() => window.alert(`Branch: ${getBranchName(branch) || "-"}\nID: ${branchId || "-"}\nPhone: ${readBranchField(branch, "phone", "Phone") || "-"}\nEmail: ${readBranchField(branch, "email", "Email") || "-"}\nLocation: ${formatBranchAddress(branch) || "-"}\nStatus: ${isActive ? "Active" : "Inactive"}`)}
-                  title="View branch"
-                  aria-label={`View ${getBranchName(branch) || "branch"}`}
-                >
-                  <Eye size={14} />
-                </button>
-                <button
-                  type="button"
-                  className="branches-action-button branches-action-edit"
-                  onClick={() => openEditModal(branch)}
-                  disabled={saving || isUpdating || isDeleting || !canEdit}
-                  title="Edit branch"
-                  aria-label={`Edit ${getBranchName(branch) || "branch"}`}
-                >
-                  <Pencil size={14} />
-                </button>
-                <button
-                  type="button"
-                  className="branches-action-button branches-action-toggle"
-                  onClick={() => toggleBranchStatus(branch)}
-                  disabled={saving || isUpdating || isDeleting || !canEdit}
-                  title={isActive ? "Disable branch" : "Activate branch"}
-                  aria-label={`${isActive ? "Disable" : "Activate"} ${getBranchName(branch) || "branch"}`}
-                >
-                  {isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
-                </button>
-                <button
-                  type="button"
-                  className="branches-action-button branches-action-danger"
-                  onClick={() => handleDeleteBranch(branch)}
-                  disabled={saving || isUpdating || isDeleting || !canDelete}
-                  title="Delete branch"
-                  aria-label={`Delete ${getBranchName(branch) || "branch"}`}
-                >
-                  <Trash2 size={14} />
-                </button>
+                <ActionsGroup
+                  rowId={branchId}
+                  activeActionState={activeActionState}
+                  setActiveActionState={setActiveActionState}
+                  canView={true}
+                  canEdit={canEdit}
+                  canStatus={canEdit}
+                  canDelete={canDelete}
+                  statusChecked={isActive}
+                  statusDisabled={saving || isUpdating || isDeleting}
+                  statusTitle={isActive ? "Disable branch" : "Activate branch"}
+                  onView={() => window.alert(`Branch: ${getBranchName(branch) || "-"}\nID: ${branchId || "-"}\nPhone: ${readBranchField(branch, "phone", "Phone") || "-"}\nEmail: ${readBranchField(branch, "email", "Email") || "-"}\nLocation: ${formatBranchAddress(branch) || "-"}\nStatus: ${isActive ? "Active" : "Inactive"}`)}
+                  onEdit={() => openEditModal(branch)}
+                  onStatus={() => toggleBranchStatus(branch)}
+                  onDelete={() => handleDeleteBranch(branch)}
+                />
               </div>
             </div>
           );
